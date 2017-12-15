@@ -24,18 +24,19 @@ type Config struct {
 	Timeout time.Duration
 }
 
-type basicOAIFetcher struct {
+// BasicOAIFetcher is a simple implementation useful for fetching OAI feeds page by page
+type BasicOAIFetcher struct {
 	client  *http.Client
 	timeout time.Duration
 }
 
 // NewBasicOAIFetcher instatiates a new basic fetcher for use in retrieving OAI links
-func NewBasicOAIFetcher(c Config) *basicOAIFetcher {
+func NewBasicOAIFetcher(c Config) *BasicOAIFetcher {
 	if c.Timeout == 0 {
 		c.Timeout = time.Second * 600 // 5 minute timeout
 	}
 
-	return &basicOAIFetcher{
+	return &BasicOAIFetcher{
 		client:  &http.Client{},
 		timeout: c.Timeout,
 	}
@@ -44,7 +45,7 @@ func NewBasicOAIFetcher(c Config) *basicOAIFetcher {
 // Fetch retrieves the resource from source and writes it to dest. It is the callers responsibility
 // to clear up any local files when they are finished with.
 // This fetcher implementation will return an error for a non-200 response.
-func (f *basicOAIFetcher) Fetch(source string) ([]byte, int, error) {
+func (f *BasicOAIFetcher) Fetch(source string) ([]byte, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
 	defer cancel() // frees up the context resources.
 
@@ -81,7 +82,7 @@ func (f *basicOAIFetcher) Fetch(source string) ([]byte, int, error) {
 	}
 }
 
-func (f *basicOAIFetcher) handle2xx(ctx context.Context, response *http.Response, source string) ([]byte, int, error) {
+func (f *BasicOAIFetcher) handle2xx(ctx context.Context, response *http.Response, source string) ([]byte, int, error) {
 	if response.StatusCode != http.StatusOK {
 		// return an err as we should only be getting 200
 		return nil, response.StatusCode, ErrNon200Response
